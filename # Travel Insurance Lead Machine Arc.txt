@@ -1,0 +1,136 @@
+# Travel Insurance Lead Machine Architecture Document
+
+## Technical Summary
+
+The Travel Insurance Lead Machine is a mobile-first, Hebrew-localized lead generation platform optimized for the Israeli travel insurance market. It blends real-time automation and a human-in-the-loop experience via Dikla, a licensed insurance agent. The stack comprises Next.js 14, Tailwind CSS, Zustand, Supabase (PostgreSQL), Google Sheets (CRM), 8n8 (automation), and Telegram for real-time communication.
+
+This architecture balances low-code extensibility (Sheets/Make.com) with modern frontend engineering and scalable serverless backend (Supabase Edge). Core flows include micro-site quote capture, Telegram handoff, CRM updates, and nurturing via automation.
+
+## High-Level Overview
+
+Architecture: **Serverless + Modular Monolith (Monorepo)**
+
+```mermaid
+graph TD
+  User -->|Micro-site| UI[Next.js Frontend]
+  UI -->|Lead Data| Widget[Smart Quote Widget]
+  Widget --> Supabase[Supabase DB]
+  Widget --> Sheets[Google Sheets CRM]
+  Widget --> Telegram[Telegram Bot]
+  Dikla -->|CRM Review| Sheets
+  Supabase --> Automations[8n8 Workflows]
+  Sheets --> Automations
+  CMS[Notion/Sanity] --> UI
+```
+
+## Component View
+
+```mermaid
+graph TD
+  FE[Frontend (Next.js)] -->|Quote Submit| API[Supabase Edge Functions]
+  FE -->|Static Content| CMS
+  API --> Sheets
+  API --> Supabase
+  API --> TelegramBot
+  Supabase --> 8n8
+  Sheets --> 8n8
+  TelegramBot --> User
+  8n8 -->|Follow-up| User
+```
+
+* **Frontend (Next.js):** Renders micro-site, smart widget, integrates shadcn/ui; handles localization and mobile optimization.
+* **Supabase Edge Functions:** Serverless compute for secure backend logic (e.g., data validation, DB writes, bot triggers).
+* **Google Sheets CRM:** Structured lead data and status tracking; primary workflow for Dikla.
+* **Telegram Bot:** Immediate user feedback, lead confirmation, and escalation.
+* **8n8 Automations:** Delayed follow-up sequences (T-0, T-14, T-30).
+* **CMS:** Content delivery (articles, testimonials); feeds into landing page.
+
+## Key Architectural Decisions & Patterns
+
+* **Serverless Functions (Supabase Edge):** Light-weight logic execution; fast deploy, no infra ops.
+
+  * *Justification:* Fast iteration, low complexity, built-in auth.
+
+* **Google Sheets as CRM:** Low-code, structured, accessible for Dikla.
+
+  * *Justification:* Familiar UI for human agent, rapid config.
+
+* **Quote Flow ≠ Live Price:** Form collects lead; Dikla replies with personalized pricing.
+
+  * *Justification:* Simplifies tech; preserves regulatory integrity.
+
+* **State Management:** Zustand for local/global state in form and feature flows.
+
+* **Microservices Lite:** Telegram bot decoupled but coordinated via 8n8 + CRM.
+
+## Infrastructure and Deployment Overview
+
+* **Cloud Provider(s):** Vercel (frontend), Supabase (backend), Google (Sheets)
+* **Core Services Used:**
+
+  * Vercel (CI/CD, preview deploys)
+  * Supabase (Edge Functions, DB, storage)
+  * Google Sheets (CRM)
+  * Make.com (automation glue)
+  * 8n8 (workflow engine)
+  * CapCut API (Reels)
+* **IaC:** Not specified (manual + SaaS config)
+* **Deployment Strategy:** CI/CD via GitHub → Vercel; Supabase CLI for DB; manual Make + Telegram setup
+* **Environments:** Dev, Preview (Vercel), Production
+
+## Local Development & CI/CD
+
+See `docs/setup.md` for details:
+
+* **Tools Required:**
+
+  * Node.js 18.x
+  * Supabase CLI (latest)
+  * pnpm
+  * Telegram CLI tester or bot sandbox
+
+* **Local Environment:**
+
+  * `.env.example` includes keys for Supabase, Sheets, Telegram
+  * Local Supabase for testing functions and DB interactions
+
+* **CI/CD Flow:**
+
+  * PR triggers preview on Vercel
+  * Supabase migrations via CLI and GitHub Actions
+  * Secrets managed via Vercel Dashboard
+
+## Testing Stack & Failover Design
+
+* **Testing:**
+
+  * **E2E:** Playwright (preferred) or Cypress for bot and widget
+  * **Mocking:** Stub Telegram and Sheets APIs using msw or test doubles
+
+* **Failover Strategy:**
+
+  * If Telegram bot fails → show static message: “Dikla will contact you shortly”
+  * If Supabase fails → toast + fallback to Google Sheets direct entry
+  * If 8n8 fails → leads still captured; no automation but CRM preserved
+
+## Key Reference Documents
+
+* docs/prd.md
+* docs/project-brief.md
+* docs/epic1.md to epic6.md
+* docs/ui-ux-spec.md
+* docs/api-reference.md
+* docs/data-models.md
+* docs/testing-strategy.md
+* docs/environment-vars.md
+* docs/setup.md *(new)*
+* docs/project-structure.md *(new stub)*
+* docs/coding-standards.md *(new stub)*
+
+## Change Log
+
+| Change        | Date       | Version | Description                                             | Author          |
+| ------------- | ---------- | ------- | ------------------------------------------------------- | --------------- |
+| Initial draft | 2025-06-11 | 0.1     | Initial draft based on PRD                              | Architect Agent |
+| Infra Fix     | 2025-06-11 | 0.2     | Dev env docs, fallback logic, removed WhatsApp elements | Architect Agent |
+| Cleanup       | 2025-06-11 | 0.3     | Final removal of WhatsApp from architecture diagrams    | Architect Agent |

@@ -1,0 +1,90 @@
+Stories 
+
+# Epic Breakdown: Travel Insurance Lead Machine
+
+## Epic 1: Project Setup & Infrastructure
+
+### Story 1.1: Monorepo and Tooling Initialization
+
+* Setup pnpm + workspace for fullstack repo
+* Configure Next.js app and Supabase backend
+* Add Prettier, ESLint, Husky
+
+### Story 1.2: Environment Configuration
+
+* Create `.env.example`
+* Add Supabase keys, Telegram bot token, 8n8 API
+
+### Story 1.3: Hosting and Deployment
+
+* Connect to Vercel
+* Setup CI/CD preview for all PRs
+
+## Epic 2: Quote Funnel MVP
+
+### Story 2.1: Build Quote Widget
+
+* Dynamic form logic
+* Special cases (multi-kids, extreme sports)
+* Inline tips/help
+
+### Story 2.2: Form Submission Handling
+
+* Save to Google Sheets CRM
+* Send Telegram message to Dikla
+* Redirect to thank-you page
+
+### Story 2.3: Analytics Tracking
+
+* Log `form_start`, `form_submit`, `form_error`
+
+## Epic 3: CRM & Agent Workflows
+
+### Story 3.1: CRM Integration
+
+* Sheets structure for leads
+* Track status updates
+
+### Story 3.2: Telegram Alerts
+
+* Notify Dikla when lead submitted
+* Retry if Telegram fails
+
+## Epic 4: Automation & Follow-Up
+
+### Story 4.1: 8n8 Nurture Flows
+
+* T+0 confirm, T+14 reminder, T+30 NPS
+
+### Story 4.2: CapCut Reels Integration
+
+* Auto-generate daily travel clips from blog
+
+## Epic 5: Content & UX Polish
+
+### Story 5.1: Static Comparison Table
+
+* List 3 generic policies, visual layout
+
+### Story 5.2: Testimonials and FAQ
+
+* UI + placeholder content
+
+### Story 5.3: Add CMS Articles
+
+* Static list, 6 articles, embed iframe or mdx
+
+## Epic 6: Observability & Testing
+
+### Story 6.1: E2E Testing Setup
+
+* Playwright config
+* Test quote flow + Telegram
+
+### Story 6.2: Monitoring Dashboard
+
+* Google Data Studio connected to Sheets
+
+### Story 6.3: Alerting
+
+* Telegram/email on failures, downtime

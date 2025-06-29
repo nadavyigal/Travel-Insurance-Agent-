@@ -1,0 +1,59 @@
+# Product Requirements Document (PRD)
+
+## Intro
+
+This MVP builds a digital-first Travel Insurance Lead Machine tailored for the Israeli market. It combines automation (micro-site, Telegram bot, CRM workflows) with human-in-the-loop service by Dikla, a licensed insurance agent.
+
+## Goals & Context
+
+* Generate 3× more qualified leads (50 → 150/month)
+* Boost conversion (18% → 22%)
+* Raise avg. premium (₪38 → ₪45)
+* Reduce CAC (₪12 → ₪9)
+
+## Measurable Outcomes
+
+* Lead volume, conversion %, CAC, average premium
+* SLA compliance (Dikla response time)
+* NPS (after purchase)
+
+## Functional Requirements (MVP)
+
+* Smart Quote Widget & Telegram Bot
+* Google Sheets CRM
+* 8n8 automation: confirmation, reminders, NPS
+* Mobile-first micro-site with static comparisons
+* CMS blog & Reels automation (CapCut)
+* Compliance dashboard
+
+## Non-Functional Requirements
+
+* Load time < 2s, bot latency < 1s
+* Scalability: 10k visitors, 1k leads/mo
+* Uptime: 99.5%
+* Data privacy: GDPR/IL law compliant
+* Maintainability: low-code tools
+* Accessibility: Hebrew-first, Telegram support
+
+## UX Requirements
+
+* Mobile-first landing, Hebrew-first layout
+* Copy: no live prices, personal handoff
+* Testimonials, personalization around Dikla
+
+## Integration Requirements
+
+* Google Sheets API
+* 8n8
+* Telegram Bot API
+* Supabase + CapCut
+* GA4/Vercel Insights
+* Email/Telegram fallback alerts
+
+## Testing Requirements
+
+* Unit: widget, bot parser
+* E2E: form → CRM → Telegram
+* UAT: Sheets + Telegram logic
+* Edge cases: multi-kids, extreme sports
+* Spikes: Supabase failover, 8n8, CapCut

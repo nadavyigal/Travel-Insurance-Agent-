@@ -1,0 +1,149 @@
+# Travel Insurance Lead Machine Frontend Architecture Document
+
+## Introduction
+
+This document details the frontend technical architecture for the Travel Insurance Lead Machine MVP. It aligns with the system's goals: mobile-first UX, Hebrew-first localization, efficient lead handoff to Dikla, and rapid iteration using a modern tech stack.
+
+* **Link to Main Architecture Document:** `docs/architecture.md`
+* **Link to UI/UX Specification:** `docs/ui-ux-spec.md`
+* **Link to Primary Design Files:** *To be added*
+* **Link to Storybook / Component Showcase:** *To be added*
+
+## Overall Frontend Philosophy & Patterns
+
+* **Framework & Libraries:** Next.js 14 (App Router) + TypeScript + Tailwind CSS
+* **Component Architecture:** Atomic Design influence; `ui/` for base elements; `features/` for scoped logic
+* **State Management:** Zustand (lightweight), local state preferred
+* **Data Flow:** Unidirectional; SWR for data fetching (e.g., user session, content)
+* **Styling:** Tailwind CSS; dark mode optional, RTL support required
+* **Design Patterns:** Hooks-first, minimal context, modular isolation
+
+## Directory Structure
+
+```plaintext
+src/
+├── app/                      # App Router structure for routes/pages/layouts
+│   ├── page.tsx             # Landing page
+│   └── api/                 # Route handlers if needed
+├── components/              # Global UI components
+│   ├── ui/                  # Design tokens: Button, Input, Modal
+│   ├── layout/              # Shell elements: Header, Footer
+│   └── custom/              # App-specific: QuoteWidget, TestimonialCard, FAQAccordion, ToastNotification, FallbackPrompt
+├── features/                # Business-logic modules
+│   ├── quote/               # Quote form, validation, CRM submission
+│   └── telegram/            # Telegram bot interaction and notification logic
+├── hooks/                   # Shared React hooks
+├── services/                # Google Sheets, Telegram, 8n8 API wrappers
+├── store/                   # Zustand store slices
+├── styles/                  # Tailwind + global styles
+├── lib/                     # Utils, constants
+└── types/                   # TypeScript types and interfaces
+```
+
+## Component Strategy
+
+### Naming & Organization
+
+* **Naming:** PascalCase (e.g., `QuoteWidget.tsx`)
+* **Reusable UI:** `components/ui/`
+* **Feature-scoped UI:** `features/{feature}/components/`
+* **Layout Components:** `components/layout/`
+
+### Key Shared Components
+
+* `QuoteWidget`
+* `TelegramButton`
+* `ComparisonTable`
+* `TestimonialCard`
+* `FAQAccordion`
+* `Modal`, `ToastNotification`, `Spinner`, `FallbackPrompt` from shadcn/ui or custom
+
+## State Management
+
+* **Library:** Zustand
+* **Structure:** Feature slices colocated under `features/*/store.ts`
+* **Global Store:** `store/index.ts` aggregates slices if needed
+* **Local State Default:** Form inputs, modals, and bots should use `useState`
+* **Example Slice: quoteSlice**
+
+  ```ts
+  interface QuoteState {
+    destination: string;
+    dates: { start: string; end: string };
+    specialActivities: string[];
+    status: 'idle' | 'submitted' | 'error';
+  }
+  ```
+
+## API Interaction Layer
+
+* **HTTP Client:** `services/apiClient.ts` with fetch or axios
+* **Endpoints:**
+
+  * `sheetsService.submitLead()` — writes structured data to Google Sheets via Sheets API
+  * `telegramService.notifyDikla()` — sends Telegram message to internal channel
+  * `telegramService.sendUserTemplate()` — sends Telegram message to user
+  * `automationService.triggerWorkflow()` — integrates with 8n8 for follow-up automations
+* **Error Handling:** try/catch + toast notifications
+* **Retry Logic:** Only on `GET`; capped at 3 attempts; exponential backoff
+
+## Routing Strategy
+
+* **Framework:** Next.js App Router
+* **Pages:**
+
+  * `/`: Landing page (micro-site)
+  * `/quote`: Embedded or modal quote widget
+  * `/thank-you`: Post-submission page
+
+## User Onboarding & Help Flows
+
+* **First Visit:** Display brief help text below the QuoteWidget title ("קל למלא, פחות מדקה")
+* **Form Tips:** Inputs may include inline tips (e.g., hover/click "?" icons)
+* **Help CTA:** FallbackPrompt modal triggered on error, inactivity, or repeated form reset
+* **Post-Submission Feedback:**
+
+  * Visual: Confirmation screen with success icon, thank-you message, expected response time
+  * Behavioral: ToastNotification confirms Telegram message sent; transitions to `/thank-you`
+
+## Analytics Tracking Points
+
+* `quote_form_start` — when user interacts with the first field
+* `quote_form_submit` — on successful submission
+* `faq_expand` — when user opens a question in FAQAccordion
+* `help_prompt_triggered` — when fallback/help modal appears
+
+## Build, Deployment, Performance
+
+* **Build Scripts:**
+
+  * `dev`: `next dev`
+  * `build`: `next build`
+  * `start`: `next start`
+* **CI/CD:** Vercel with preview links per PR
+* **Optimizations:**
+
+  * `next/image` for responsive, lazy images
+  * Route-based code splitting (Next.js default)
+  * Tailwind purge for CSS size
+
+## Accessibility & i18n
+
+* **AX Targets:** WCAG 2.1 AA
+* **Features:** RTL layout, keyboard access, ARIA roles, focus trap in modals
+* **Library:** `next-intl` or `react-i18next`
+* **Default Locale:** `he-IL`
+
+## Testing Strategy
+
+* **Unit:** Jest + React Testing Library for components
+* **E2E:** Playwright or Cypress for quote/Telegram flows
+* **Manual:** UAT on Google Sheets + Telegram Bot handoff
+
+## Change Log
+
+| Change       | Date       | Version | Description                                         | Author  |
+| ------------ | ---------- | ------- | --------------------------------------------------- | ------- |
+| Stack Update | 2025-05-27 | 1.1     | Replaced Airtable/Slack/WA with Sheets/Telegram/8n8 | ChatGPT |
+| PO Fixes     | 2025-05-27 | 1.2     | Added help flows, tracking, removed WhatsApp        | ChatGPT |
+| Cleanup      | 2025-05-27 | 1.3     | Removed all WhatsApp flowcharts and icon references | ChatGPT |

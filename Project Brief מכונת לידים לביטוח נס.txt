@@ -1,0 +1,100 @@
+Project Brief: Travel Insurance Lead Machine
+
+Introduction / Problem Statement
+
+This project aims to establish a comprehensive "lead machine" for travel insurance, specifically targeting Israeli travelers. Dikla, a licensed insurance agent, serves as the human-in-the-loop for personalized quotes and direct support. The system resolves a fragmented process by offering immediate digital interaction followed by expert human follow-up.
+
+Vision & Goals
+
+Vision: Become the most trusted, efficient, and personalized digital-first platform for travel insurance in Israel.
+
+Primary Goals (MVP):
+
+Increase monthly qualified leads from 50 to 150 within Q1
+
+Improve the lead-to-policy conversion rate from 18% to 22%
+
+Increase the average premium from ₪38 to ₪45
+
+Reduce CAC from ₪12 to ₪9
+
+Success Metrics
+
+Monthly qualified leads
+
+Conversion rate (lead to policy)
+
+Average premium per policy
+
+CAC
+
+Website conversion rate
+
+Content engagement
+
+Dikla's response time (via CRM/Telegram)
+
+NPS after policy purchase
+
+Target Audience
+
+Independent travelers & backpackers
+
+Families (especially with children)
+
+Young professionals & digital nomads (25–45)
+
+Adventure/extreme sports travelers
+
+Scope & Key Features (MVP)
+
+Micro-Site
+
+Smart Quote Widget
+
+Static comparison table
+
+Testimonials
+
+FAQ
+
+CRM & Lead Handling
+
+Google Sheets CRM
+
+Telegram notifications to Dikla
+
+Marketing Automation
+
+8n8 workflows: confirmations, reminders, NPS
+
+CapCut-powered daily Reels
+
+Content Engine
+
+CMS with 6+ SEO articles
+
+Monitoring
+
+Dashboard via Google Data Studio
+
+Real-time lead & conversion metrics
+
+Technical Preferences & Constraints
+
+8-week MVP window
+
+₪34k budget + ₪600/mo tools
+
+Telegram-first messaging
+
+Next.js 14 + Tailwind CSS frontend
+
+Supabase backend
+
+Google Sheets CRM
+
+CapCut API for video
+
+Hosting via Vercel
+
