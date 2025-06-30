@@ -121,40 +121,70 @@ function addLeadToSheet(leadData) {
 }
 
 function addChatLogToSheet(chatData) {
+  console.log('Adding chat log to sheet:', chatData);
+  
   try {
     const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
     
     let sheet = spreadsheet.getSheetByName('chat_logs');
     if (!sheet) {
+      console.log('Creating new sheet: chat_logs');
       sheet = spreadsheet.insertSheet('chat_logs');
-      sheet.getRange(1, 1, 1, 4).setValues([[
-        'timestamp', 'question', 'answer', 'lead_uuid'
-      ]]);
       
-      const headerRange = sheet.getRange(1, 1, 1, 4);
+      // Updated headers to include tracking info
+      const headers = [
+        'timestamp', 'question', 'answer', 'tracking_id', 'tracking_type', 'lead_uuid'
+      ];
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      
+      const headerRange = sheet.getRange(1, 1, 1, headers.length);
       headerRange.setFontWeight('bold');
       headerRange.setBackground('#34a853');
       headerRange.setFontColor('white');
+      
+      console.log('Headers set successfully');
     }
     
+    // Handle both old and new schema
     const row = [
       chatData.timestamp,
       chatData.question,
       chatData.answer,
-      chatData.lead_uuid || ''
+      chatData.tracking_id || chatData.lead_uuid || '',
+      chatData.tracking_type || (chatData.lead_uuid ? 'lead' : 'session'),
+      chatData.lead_uuid || (chatData.tracking_type === 'lead' ? chatData.tracking_id : '')
     ];
     
+    console.log('Appending row:', row);
     sheet.appendRow(row);
-    sheet.autoResizeColumns(1, 4);
+    
+    // Auto-resize columns
+    try {
+      sheet.autoResizeColumns(1, 6);
+    } catch (resizeError) {
+      console.log('Could not auto-resize columns:', resizeError.toString());
+    }
+    
+    console.log('Chat log added successfully');
     
     return ContentService
-      .createTextOutput(JSON.stringify({ success: true }))
+      .createTextOutput(JSON.stringify({ 
+        success: true,
+        message: 'Chat log added successfully'
+      }))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
-    console.error('Error adding chat log to sheet:', error);
+    console.error('Error adding chat log to sheet:', error.toString());
+    console.error('Stack trace:', error.stack);
+    
     return ContentService
-      .createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
+      .createTextOutput(JSON.stringify({ 
+        success: false, 
+        error: error.toString(),
+        message: 'Failed to add chat log to sheet',
+        stack: error.stack
+      }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }

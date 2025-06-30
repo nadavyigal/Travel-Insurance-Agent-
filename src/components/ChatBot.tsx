@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 import { sendChatMessage, ChatMessage } from '../utils/openai';
 import { logChatToSheets } from '../utils/googleSheets';
+import { UserSession } from '../utils/session';
 
 interface ChatBotProps {
   leadUuid?: string;
@@ -12,13 +13,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ leadUuid }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: 'שלום! אני דקלה, הסוכנת הדיגיטלית שלכם לביטוח נסיעות. איך אוכל לעזור לכם היום?'
+      content: 'היי 👋 אני דיקלה – הסוכנת הדיגיטלית שלך לביטוח נסיעות, זמינה 24/7 לישראלים בחו״ל.\n\nתוך דקה אתאים לך פוליסה בלי השתתפות עצמית. במה אוכל לעזור?'
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Get or create session ID for tracking
+  const [sessionId] = useState(() => UserSession.getOrCreateSessionId());
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -62,16 +66,18 @@ const ChatBot: React.FC<ChatBotProps> = ({ leadUuid }) => {
       ];
       setMessages(updatedMessages);
 
-      // Log to Google Sheets
+      // Log to Google Sheets with lead UUID if available, otherwise use session ID
       try {
-        await logChatToSheets(userMessage, response, leadUuid);
+        const trackingId = leadUuid || sessionId;
+        await logChatToSheets(userMessage, response, trackingId);
+        console.log(`Chat logged with tracking ID: ${trackingId} (${leadUuid ? 'Lead' : 'Session'})`);
       } catch (logError) {
         console.error('Failed to log chat:', logError);
       }
 
     } catch (error) {
       console.error('Chat error:', error);
-      const errorMessage = 'מצטער, אירעה שגיאה. אנא נסה שוב או צור קשר בטלפון 03-1234567';
+      const errorMessage = 'אופס, נתקלתי בבעיה טכנית. למקרי חירום: +972-3-XXXXXXX 🚑\nדיקלה האנושית תשמח לעזור!';
       setMessages([
         ...newMessages,
         { role: 'assistant', content: errorMessage }
@@ -96,18 +102,18 @@ const ChatBot: React.FC<ChatBotProps> = ({ leadUuid }) => {
         className={`fixed bottom-6 right-6 bg-gradient-to-r from-primary-600 to-accent-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-40 ${
           isOpen ? 'scale-0' : 'scale-100'
         }`}
-        aria-label="פתח צ'אט עם דקלה"
+        aria-label="פתח צ'אט עם דיקלה"
       >
         <div className="flex items-center space-x-2 space-x-reverse">
-          <span className="font-alef font-medium text-sm hidden sm:block">Ask Dikla</span>
-          <span className="text-lg">🤖</span>
+          <span className="font-alef font-medium text-sm hidden sm:block">דבר/י עם דיקלה</span>
+          <span className="text-lg">💬</span>
           <MessageCircle className="w-5 h-5" />
         </div>
       </button>
 
       {/* Chat Panel */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-80 sm:w-96 h-96 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 flex flex-col animate-slide-up">
+        <div className="fixed bottom-6 right-6 w-96 sm:w-[420px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 flex flex-col animate-slide-up">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-t-2xl">
             <button
@@ -117,7 +123,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ leadUuid }) => {
               <X className="w-5 h-5" />
             </button>
             <div className="flex items-center space-x-2 space-x-reverse">
-              <span className="font-alef font-semibold">דקלה - סוכנת ביטוח</span>
+              <span className="font-alef font-semibold">דיקלה - סוכנת דיגיטלית</span>
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <Bot className="w-4 h-4" />
               </div>
@@ -132,15 +138,15 @@ const ChatBot: React.FC<ChatBotProps> = ({ leadUuid }) => {
                 className={`flex ${message.role === 'user' ? 'justify-start' : 'justify-end'}`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-2xl ${
+                  className={`max-w-[85%] p-3 rounded-2xl ${
                     message.role === 'user'
                       ? 'bg-gray-100 text-gray-900'
                       : 'bg-gradient-to-r from-primary-600 to-accent-600 text-white'
                   }`}
                 >
                   <div className="flex items-start space-x-2 space-x-reverse">
-                    <div className="flex-1">
-                      <p className="text-sm font-alef leading-relaxed text-right">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-alef leading-relaxed text-right whitespace-pre-wrap break-words">
                         {message.content}
                       </p>
                     </div>
@@ -167,7 +173,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ leadUuid }) => {
                       <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                       <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
-                    <span className="text-sm font-alef">דקלה כותבת...</span>
+                    <span className="text-sm font-alef">מעבדת...</span>
                   </div>
                 </div>
               </div>
@@ -191,7 +197,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ leadUuid }) => {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="שאל אותי על ביטוח נסיעות..."
+                placeholder="ספר/י לי לאן נוסע/ת... ✈️"
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent font-alef text-right"
                 disabled={isLoading}
               />

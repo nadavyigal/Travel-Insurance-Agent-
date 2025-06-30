@@ -83,25 +83,30 @@ function addChatLogToSheet(chatData) {
     let sheet = spreadsheet.getSheetByName('chat_logs');
     if (!sheet) {
       sheet = spreadsheet.insertSheet('chat_logs');
-      sheet.getRange(1, 1, 1, 4).setValues([[
-        'timestamp', 'question', 'answer', 'lead_uuid'
+      
+      // Updated headers to include tracking info
+      sheet.getRange(1, 1, 1, 6).setValues([[
+        'timestamp', 'question', 'answer', 'tracking_id', 'tracking_type', 'lead_uuid'
       ]]);
       
-      const headerRange = sheet.getRange(1, 1, 1, 4);
+      const headerRange = sheet.getRange(1, 1, 1, 6);
       headerRange.setFontWeight('bold');
       headerRange.setBackground('#34a853');
       headerRange.setFontColor('white');
     }
     
+    // Handle both old and new schema
     const row = [
       chatData.timestamp,
       chatData.question,
       chatData.answer,
-      chatData.lead_uuid || ''
+      chatData.tracking_id || chatData.lead_uuid || '',
+      chatData.tracking_type || (chatData.lead_uuid ? 'lead' : 'session'),
+      chatData.lead_uuid || (chatData.tracking_type === 'lead' ? chatData.tracking_id : '')
     ];
     
     sheet.appendRow(row);
-    sheet.autoResizeColumns(1, 4);
+    sheet.autoResizeColumns(1, 6);
     
     return ContentService
       .createTextOutput(JSON.stringify({ success: true }))

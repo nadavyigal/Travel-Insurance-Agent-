@@ -27,7 +27,8 @@ interface ChatLogRow {
   timestamp: string;
   question: string;
   answer: string;
-  lead_uuid?: string;
+  tracking_id: string;
+  tracking_type: 'lead' | 'session';
 }
 
 // Google Apps Script Web App URL - Replace with your actual deployment URL
@@ -131,13 +132,16 @@ export async function submitLeadToSheets(formData: LeadFormData): Promise<{ succ
   }
 }
 
-export async function logChatToSheets(question: string, answer: string, leadUuid?: string): Promise<void> {
-
+export async function logChatToSheets(question: string, answer: string, trackingId: string): Promise<void> {
+  // Determine if tracking ID is a lead UUID or session ID
+  const isLeadUuid = trackingId && trackingId.length > 20; // Lead UUIDs are longer
+  
   const chatLogRow: ChatLogRow = {
     timestamp: new Date().toISOString(),
     question,
     answer,
-    lead_uuid: leadUuid
+    tracking_id: trackingId,
+    tracking_type: isLeadUuid ? 'lead' : 'session'
   };
 
   try {
@@ -152,6 +156,7 @@ export async function logChatToSheets(question: string, answer: string, leadUuid
       }),
       mode: 'no-cors' // Changed from 'cors' to 'no-cors'
     });
+    console.log(`Chat logged successfully - Type: ${chatLogRow.tracking_type}, ID: ${trackingId}`);
   } catch (error) {
     console.error('Error logging chat to sheets:', error);
   }
